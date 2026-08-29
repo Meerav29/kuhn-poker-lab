@@ -5,6 +5,8 @@ a perfect best-responder can win against the other seat's part of sigma,
 above the (zero-sum) equilibrium value. At a true Nash equilibrium this
 is exactly 0.
 """
+import random
+
 from kuhn import game
 
 
@@ -67,3 +69,42 @@ def exploitability(bot) -> float:
     br1 = best_response_value(bot, 0)
     br2 = best_response_value(bot, 1)
     return (br1 + br2) / 2
+
+
+def _play_hand(bot_a, bot_b, card1: int, card2: int, rng: random.Random) -> int:
+    """Simulate one hand: bot_a as Player 1, bot_b as Player 2. Returns
+    Player 1's (bot_a's) net payoff."""
+    history = ""
+    while not game.is_terminal(history):
+        player = game.whose_turn(history)
+        card = card1 if player == 0 else card2
+        bot = bot_a if player == 0 else bot_b
+        p_pass, p_bet = _probs(bot, card, history)
+        action = "p" if rng.random() < p_pass else "b"
+        history += action
+    return game.payoff(history, card1, card2)
+
+
+def head_to_head(bot_a, bot_b, n_hands: int, seed: int = None) -> dict:
+    """Simulate n_hands hands with bot_a as Player 1 and bot_b as Player 2.
+    Returns bot_a's mean payoff and a 95% bootstrap confidence interval."""
+    rng = random.Random(seed)
+    deals = game.all_deals()
+    payoffs = []
+    for _ in range(n_hands):
+        c1, c2 = rng.choice(deals)
+        payoffs.append(_play_hand(bot_a, bot_b, c1, c2, rng))
+
+    mean = sum(payoffs) / len(payoffs)
+
+    boot_rng = random.Random(seed)
+    n_boot = 2000
+    boot_means = []
+    for _ in range(n_boot):
+        sample = [payoffs[boot_rng.randrange(len(payoffs))] for _ in range(len(payoffs))]
+        boot_means.append(sum(sample) / len(sample))
+    boot_means.sort()
+    ci_low = boot_means[int(0.025 * n_boot)]
+    ci_high = boot_means[int(0.975 * n_boot)]
+
+    return {"mean": mean, "ci_low": ci_low, "ci_high": ci_high}
