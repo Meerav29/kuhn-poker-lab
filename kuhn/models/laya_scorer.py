@@ -4,6 +4,7 @@ Laya's `predict(state, questions)` takes typed questions and returns an
 `answers` dict. Choice answers must carry per-label probabilities; noul
 answers carry the probability of "yes". See scripts/probe_laya.py.
 """
+import math
 from kuhn.models.scorer import Question
 
 _PROB_KEYS = ("probs", "probabilities", "scores")
@@ -11,18 +12,37 @@ _PROB_KEYS = ("probs", "probabilities", "scores")
 
 def extract_probs(answer: dict, question: Question) -> dict:
     if question.kind == "noul":
+        if "noul" not in answer:
+            raise KeyError(f"noul answer missing 'noul' key; keys present: {sorted(answer)}")
         p = answer["noul"]
         if isinstance(p, bool) or not isinstance(p, (int, float)):
             raise ValueError(f"expected numeric noul probability, got {p!r}")
-        return {"yes": float(p), "no": 1.0 - float(p)}
+        p = float(p)
+        if math.isnan(p) or not (0.0 <= p <= 1.0):
+            raise ValueError(f"noul probability must be in [0, 1] and not NaN, got {p}")
+        return {"yes": p, "no": 1.0 - p}
+
     for key in _PROB_KEYS:
         if key in answer:
             raw = answer[key]
             break
     else:
         raise KeyError(f"choice answer has none of {_PROB_KEYS}: keys={sorted(answer)}")
-    probs = {label: float(raw[label]) for label in question.labels}
+
+    # Extract and validate probabilities for each label
+    probs = {}
+    for label in question.labels:
+        if label not in raw:
+            raise KeyError(f"choice probability missing label '{label}'; keys in probs: {sorted(raw.keys())}")
+        v = float(raw[label])
+        if math.isnan(v) or not math.isfinite(v) or v < 0:
+            raise ValueError(f"choice probability values must be non-negative and finite; got {raw}")
+        probs[label] = v
+
     total = sum(probs.values())
+    if total <= 0:
+        raise ValueError(f"choice probability total must be > 0; got {raw}")
+
     return {label: v / total for label, v in probs.items()}
 
 
