@@ -1,10 +1,13 @@
+import json
 import math
 import os
+import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 
-from kuhn.models.logprob_scorer import LogprobScorer, probs_from_logprobs
-from kuhn.models.scorer import Question
+from kuhn.models.logprob_scorer import probs_from_logprobs
 
 
 def test_probs_from_logprobs_is_a_softmax():
@@ -21,7 +24,24 @@ def test_probs_from_logprobs_is_stable_for_very_negative_values():
 @pytest.mark.slow
 @pytest.mark.skipif(not os.environ.get("RUN_SLOW"), reason="downloads a model; set RUN_SLOW=1")
 def test_logprob_scorer_returns_a_distribution_over_labels():
-    q = Question("choice", "Do you check or bet?", (("check", "p"), ("bet", "b")))
-    out = LogprobScorer().score("card=K history=-", q)
+    script = """
+import json
+from kuhn.models.logprob_scorer import LogprobScorer
+from kuhn.models.scorer import Question
+
+q = Question("choice", "Do you check or bet?", (("check", "p"), ("bet", "b")))
+out = LogprobScorer().score("card=K history=-", q)
+print(json.dumps(out))
+"""
+    repo_root = Path(__file__).resolve().parent.parent
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        capture_output=True,
+        text=True,
+        timeout=900,
+        cwd=repo_root
+    )
+    assert result.returncode == 0, f"subprocess failed with stderr: {result.stderr[-2000:]}"
+    out = json.loads(result.stdout.strip().split('\n')[-1])
     assert set(out) == {"check", "bet"}
     assert sum(out.values()) == pytest.approx(1.0)
