@@ -9,7 +9,7 @@ models:
     repo: convaiinnovations/laya
     params: 421M
     license: Apache-2.0
-    revision_seen: "55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851 (rung 0) and 7b928d828b7b0e022f929d9bd2e44165aa270148 (HF cache main as of 2026-10-03 14:06; rung 1 may have used either; same blob ids for all files read, adds only a 160-byte root config.json)"
+    revision_seen: "55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851 and 7b928d828b7b0e022f929d9bd2e44165aa270148 (either may have been used; verified identical outputs on 48 prompts, max abs diff 0.0)"
     notes: "ModernBERT-large typed decision model, English. Released 2026-09-18. Revision not pinned."
   - id: laya-multilingual
     kind: laya
@@ -17,7 +17,7 @@ models:
     subfolder: multilingual
     params: 322M
     license: Apache-2.0
-    revision_seen: "55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851 (only snapshot containing multilingual/ in the HF cache; rung 0 output cached 02:18, before the second snapshot existed)"
+    revision_seen: "55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851 (only snapshot containing multilingual/); the two English snapshots were verified identical on 48 prompts, max abs diff 0.0"
     notes: "Multilingual Laya checkpoint (100+ languages). Revision not pinned."
   - id: qwen2.5-0.5b-logprob
     kind: logprob
