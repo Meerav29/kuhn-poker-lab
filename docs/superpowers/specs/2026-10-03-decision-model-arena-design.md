@@ -81,6 +81,8 @@ Checked against the model cards before planning; these supersede the matching te
 4. **Distance from Nash.** `distance_from_nash` defaults to the nearest equilibrium in the α-family (grid over α ∈ [0, 1/3]) instead of fixing α = 0, because the family is all equally valid equilibria. The chosen α is reported. α = 0 stays the opponent in head-to-head.
 5. **Question type is a ladder variable.** `choice` (pick a label) vs `noul` (yes/no probability) is varied alongside encoder and label wording.
 6. **Rung 2 is gated.** Kuhn has only 12 distinct training examples per prompt variant, so the "100 / 1k / 10k examples" axis would be 12 examples repeated. The scaling axes become prompt-variant coverage and training steps, with held-out prompt variants as the memorization check. Whether Laya supports fine-tuning at all is unverified, so rungs 0–1 plus a feasibility probe are planned first, and the rung-2 training loop gets its own plan after the probe.
+7. **Ladder plots were not built.** The spec's "ladder plots" from `make_report_assets` do not exist; the generated assets are the leaderboard table and the per-infoset heatmap only.
+8. **"Generative LLMs (chat or API)" in Out of Scope means as contestants.** A local causal LM is used only as a label-logprob baseline scorer (Amendment 3).
 
 ## Constraints and Assumptions
 
