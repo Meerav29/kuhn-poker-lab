@@ -1,0 +1,31 @@
+# models.yaml
+# Every candidate is either runnable (has a loader kind) or excluded with a reason.
+models:
+  - id: uniform
+    kind: uniform
+    notes: "Baseline: 50/50 over the answer labels (equivalent to RandomBot)."
+  - id: laya-en
+    kind: laya
+    repo: convaiinnovations/laya
+    params: 421M
+    license: Apache-2.0
+    notes: "ModernBERT-large typed decision model, English. Released 2026-09-18."
+  - id: laya-multilingual
+    kind: laya
+    repo: convaiinnovations/laya
+    subfolder: multilingual
+    params: 322M
+    license: Apache-2.0
+    notes: "Multilingual Laya checkpoint (100+ languages)."
+  - id: qwen2.5-0.5b-logprob
+    kind: logprob
+    repo: Qwen/Qwen2.5-0.5B-Instruct
+    params: 0.5B
+    license: Apache-2.0
+    notes: "Non-Jev baseline: next-token label logprobs from a small generic causal LM."
+
+excluded:
+  - id: jev
+    reason: "TypeSafe AI's Jev is a paid closed API with no published weights; it cannot run locally."
+  - id: laya-mlx
+    reason: "Apple Silicon-only MLX port of the same weights as laya-en; this project runs on Windows."
