@@ -71,6 +71,17 @@ A model's full strategy is 12 queries (one per information set), so exploitabili
 - "Where do they go wrong": model × information-set heatmap (e.g. never bluffing with a Jack, over-calling with a Queen).
 - Honest caveats: Kuhn has only 12 information sets, so a fine-tuned model can nearly memorize the equilibrium; the held-out variant addresses this only partly. Leduc is the natural follow-up.
 
+## Amendments (2026-10-03, found while writing the implementation plan)
+
+Checked against the model cards before planning; these supersede the matching text above.
+
+1. **Scorer interface, not one `transformers` path.** Laya runs through its own package (`pip install laya`, `laya.load(...)`, `agent.predict(state, questions)`, question types `choice` / `noul` / `score`), not a generic classifier. Every model family implements one `Scorer` interface (`score(state, question) -> {label: prob}`); `ModelBot` only sees that interface. Laya and the other Jev-class models are PyTorch/CUDA-capable via their packages; the MLX port is still out of scope.
+2. **Jev itself is excluded.** It is a paid closed API with no published weights. Other JevBench entries are decided during model discovery, and each excluded one is listed with its reason.
+3. **Non-Jev baselines.** The "untrained generic encoder head" baseline is replaced by (a) a uniform-label scorer and (b) a local-LLM label-logprob scorer (reads one token's logprobs, the same idea as the XavierJev entry), which is more informative than a random head.
+4. **Distance from Nash.** `distance_from_nash` defaults to the nearest equilibrium in the α-family (grid over α ∈ [0, 1/3]) instead of fixing α = 0, because the family is all equally valid equilibria. The chosen α is reported. α = 0 stays the opponent in head-to-head.
+5. **Question type is a ladder variable.** `choice` (pick a label) vs `noul` (yes/no probability) is varied alongside encoder and label wording.
+6. **Rung 2 is gated.** Kuhn has only 12 distinct training examples per prompt variant, so the "100 / 1k / 10k examples" axis would be 12 examples repeated. The scaling axes become prompt-variant coverage and training steps, with held-out prompt variants as the memorization check. Whether Laya supports fine-tuning at all is unverified, so rungs 0–1 plus a feasibility probe are planned first, and the rung-2 training loop gets its own plan after the probe.
+
 ## Constraints and Assumptions
 
 - Runs on a Windows machine via PyTorch/`transformers` (CPU, or NVIDIA GPU if present). One code path for all models.
