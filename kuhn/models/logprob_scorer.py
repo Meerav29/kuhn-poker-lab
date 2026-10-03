@@ -16,10 +16,6 @@ def probs_from_logprobs(logprobs: dict) -> dict:
 
 class LogprobScorer:
     def __init__(self, model_id: str = "Qwen/Qwen2.5-0.5B-Instruct", name: str = None):
-        import os
-        # Workaround for ROCm DLL issues on Windows
-        os.environ.setdefault('HSA_OVERRIDE_GFX_VERSION', '0')
-
         import torch  # lazy imports keep unit tests and the rest of the package light
         from transformers import AutoModelForCausalLM, AutoTokenizer
 

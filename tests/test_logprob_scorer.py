@@ -41,7 +41,10 @@ print(json.dumps(out))
         timeout=900,
         cwd=repo_root
     )
-    assert result.returncode == 0, f"subprocess failed with stderr: {result.stderr[-2000:]}"
-    out = json.loads(result.stdout.strip().split('\n')[-1])
+    assert result.returncode == 0, f"subprocess failed: stderr={result.stderr[-2000:]}, stdout={result.stdout[-500:]}"
+    try:
+        out = json.loads(result.stdout.strip().split('\n')[-1])
+    except (json.JSONDecodeError, ValueError, IndexError) as e:
+        pytest.fail(f"failed to parse JSON from stdout: {e}, stdout={result.stdout[-500:]}")
     assert set(out) == {"check", "bet"}
     assert sum(out.values()) == pytest.approx(1.0)
