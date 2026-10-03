@@ -1,0 +1,40 @@
+# models.yaml
+# Every candidate is either runnable (has a loader kind) or excluded with a reason.
+models:
+  - id: uniform
+    kind: uniform
+    notes: "Baseline: 50/50 over the answer labels (equivalent to RandomBot)."
+  - id: laya-en
+    kind: laya
+    repo: convaiinnovations/laya
+    params: 421M
+    license: Apache-2.0
+    revision_seen: "55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851 and 7b928d828b7b0e022f929d9bd2e44165aa270148 (either may have been used; verified identical outputs on 48 prompts, max abs diff 0.0)"
+    notes: "ModernBERT-large typed decision model, English. Released 2026-09-18. Revision not pinned."
+  - id: laya-multilingual
+    kind: laya
+    repo: convaiinnovations/laya
+    subfolder: multilingual
+    params: 322M
+    license: Apache-2.0
+    revision_seen: "55cf4c4ebb4ebe31b2550e8bdf3bd21b99753851 (only snapshot containing multilingual/); the two English snapshots were verified identical on 48 prompts, max abs diff 0.0"
+    notes: "Multilingual Laya checkpoint (100+ languages). Revision not pinned."
+  - id: qwen2.5-0.5b-logprob
+    kind: logprob
+    repo: Qwen/Qwen2.5-0.5B-Instruct
+    params: 0.5B
+    license: Apache-2.0
+    revision_seen: "7ae557604adf67be50417f59c2c2f167def9a775 (only snapshot in the HF cache)"
+    notes: "Non-Jev baseline: next-token label logprobs from a small generic causal LM. Revision not pinned."
+
+excluded:
+  - id: jev
+    reason: "TypeSafe AI's Jev is a paid closed API with no published weights; it cannot run locally."
+  - id: laya-mlx
+    reason: "Apple Silicon-only MLX port of the same weights as laya-en; this project runs on Windows."
+  - id: semif-qwen3.5-4b
+    reason: "SemIf (Qwen3.5-4B), an open Jev-compatible JevBench entry: not investigated: out of scope for the time budget; availability, license, and Jev-compatible API unverified."
+  - id: djev
+    reason: "djev, a JevBench entry: not investigated: out of scope for the time budget; availability, license, and Jev-compatible API unverified."
+  - id: other-jevbench-entries
+    reason: "The remaining JevBench leaderboard entries (70+ listed): not investigated: out of scope for the time budget; availability, license, and Jev-compatible API unverified. Only Laya was found to be open-weight and locally runnable."

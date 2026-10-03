@@ -5,9 +5,11 @@ a perfect best-responder can win against the other seat's part of sigma,
 above the (zero-sum) equilibrium value. At a true Nash equilibrium this
 is exactly 0.
 """
+import math
 import random
 
 from kuhn import game
+from kuhn.bots.nash import NashBot
 
 
 def _probs(bot, card: int, history: str):
@@ -108,3 +110,42 @@ def head_to_head(bot_a, bot_b, n_hands: int, seed: int = None) -> dict:
     ci_high = boot_means[int(0.975 * n_boot)]
 
     return {"mean": mean, "ci_low": ci_low, "ci_high": ci_high}
+
+
+def _kl(nash_probs, bot_probs, eps: float = 1e-6) -> float:
+    """KL(nash || bot). The bot's probabilities are smoothed by eps so a bot
+    that never takes an action Nash sometimes takes is penalised heavily
+    but finitely."""
+    return sum(q * math.log(q / (p + eps)) for q, p in zip(nash_probs, bot_probs) if q > 0)
+
+
+def distance_from_nash(bot, alpha: float = None, grid: int = 34) -> dict:
+    """Per-infoset distance (L1 and KL) between `bot` and a Nash bot.
+
+    Kuhn's equilibria form a family indexed by alpha in [0, 1/3], so by
+    default the *nearest* family member (smallest total L1) is used and
+    reported. Pass `alpha` to measure against one fixed member."""
+    infosets = game.all_infosets()
+    bot_dists = {}
+    for key in infosets:
+        d = bot.action_probs(key, game.legal_actions(key[1:]))
+        bot_dists[key] = (d.get("p", 0.0), d.get("b", 0.0))
+
+    def rows_for(a: float) -> dict:
+        nash = NashBot(alpha=a)
+        rows = {}
+        for key in infosets:
+            nd = nash.action_probs(key, game.ACTIONS)
+            n = (nd["p"], nd["b"])
+            b = bot_dists[key]
+            rows[key] = {"l1": abs(n[0] - b[0]) + abs(n[1] - b[1]), "kl": _kl(n, b)}
+        return rows
+
+    candidates = [alpha] if alpha is not None else [(1 / 3) * i / grid for i in range(grid + 1)]
+    best = None
+    for a in candidates:
+        rows = rows_for(a)
+        total = sum(r["l1"] for r in rows.values())
+        if best is None or total < best["total_l1"] - 1e-12:
+            best = {"alpha": a, "total_l1": total, "per_infoset": rows}
+    return best

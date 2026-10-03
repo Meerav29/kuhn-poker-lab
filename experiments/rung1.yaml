@@ -1,0 +1,8 @@
+seed: 0
+cfr_iterations: 50000
+head_to_head_hands: 20000
+grid:
+  models: [uniform, laya-en, qwen2.5-0.5b-logprob]
+  encoders: [minimal, natural, rules, payoff]
+  qtypes: [choice, noul]
+  wordings: [plain, alt]
